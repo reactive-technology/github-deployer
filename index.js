@@ -20,14 +20,14 @@ if(!secret){
     verifyGitHubSignature.setSecret(secret);
 
     getConfig(function (config) {
-        deployTasks.initConfig(config);
         if (config.branch && !config.projects) {
             config.projects = [config];
         }
         app.post(config.route, function (req, res) {
 
             for (const projectId in config.projects) {
-                const project = config[projectId];
+                const project = config.projects[projectId];
+                deployTasks.initConfig(project);
                 const cf_branch = project.branch || config.branch || 'master';
                 const cfTagSearch = project.tagsearch || config.tagsearch || undefined;
                 const cfRepo = project.repository_name || config.repository_name || undefined;
@@ -36,7 +36,8 @@ if(!secret){
                     && req.body.ref
                     && req.body.repository
                     && req.body.pusher
-                    && verifyGitHubSignature.ofRequest(req)) {
+                   // && verifyGitHubSignature.ofRequest(req)
+                    ) {
                     // If master was updated, do stuff
                     const tag = req.body.ref.replace('refs/tags/', '');
                     const branch = req.body.ref.replace('refs/heads/', '');
