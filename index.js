@@ -1,11 +1,14 @@
 'use strict';
 require("dotenv").config({path: __dirname + "/.env"});
-var wildcard = require('wildcard');
+//Short code
+function matchRule(str, rule) {
+    return new RegExp("^" + rule.split("*").join(".*") + "$").test(str);
+}
 
 const secret = process.env.DEPLOY_LISTENER_SECRET;
-if(!secret){
+if (!secret) {
     console.error('DEPLOY_LISTENER_SECRET is not defined');
-}else{
+} else {
     var express = require('express'),
         app = express(),
         server = require('http').createServer(app),
@@ -24,7 +27,7 @@ if(!secret){
             config.projects = [config];
         }
         app.post(config.route, function (req, res) {
-            console.log('req.body',req.body);
+
 
             for (const projectId in config.projects) {
                 const project = config.projects[projectId];
@@ -38,22 +41,30 @@ if(!secret){
                     && req.body.ref
                     && req.body.repository
                     && req.body.pusher
-                   //&& verifyGitHubSignature.ofRequest(req)
-                    ) {
+                //&& verifyGitHubSignature.ofRequest(req)
+                ) {
                     // If master was updated, do stuff
                     const tag = req.body.ref.replace('refs/tags/', '');
                     const branch = req.body.ref.replace('refs/heads/', '');
                     const repository_name = req.body.repository.name;
                     const repository_ssh_url = req.body.repository.ssh_url;
                     const pusher_email = req.body.pusher.email;
-                    const params = {tag, branch, repository_name, repository_ssh_url, pusher_email};
-                    if (req.body.ref && wildcard('refs/tags/' + cfTagSearch, req.body.ref) && req.body.created) {
+                    const params = Object.assign({},
+                        project,{ tag, branch, repository_name, repository_ssh_url, pusher_email});
 
-                        if (req.body.ref && req.body.ref.indexOf(`refs/tags/${cfTagSearch}`) === 0 && req.body.created) {
-                            console.log('Valid tag payload! Running commands');
-                            deployTasks.run(function () {
-                                res.status(200).send();
-                            }, params);
+                    if (req.body.ref ) {
+                        if (matchRule(req.body.ref, 'refs/tags/' + cfTagSearch)) {
+                            if (req.body.created) {
+                                if(project.checkDestinationDir && project.destinationDir){
+                                    console.log('checkDestinationDir not yet implemented');
+                                }
+                                console.log('Valid tag payload! Running commands');
+                                deployTasks.run(function () {
+                                    res.status(200).send();
+                                }, params);
+                            } else {
+                                console.log(`the received tag is not created`);
+                            }
                         } else if (req.body.ref && req.body.ref === `refs/heads/${cf_branch}`) {
                             console.log('Valid branch payload! Running commands');
                             deployTasks.run(function () {
@@ -61,22 +72,23 @@ if(!secret){
                             }, params);
                         } else {
                             // if other branches were updated, send 200 only to make github happy...
-                            cfTagSearch && console.log(`Received tag payload unrelated to  ${cfTagSearch} tag`);
+                            cfTagSearch && console.log(`Received tag '${req.body.ref}' payload unrelated to  ${'refs/tags/' + cfTagSearch} tag`);
                             cf_branch && console.log(`Received branch payload unrelated to ${cf_branch} branch`);
                             res.status(200).send();
                         }
+
                     } else {
-                        console.log(`the received repository ${repository_name} does not match ${cfRepo}`);
+                        console.log(`error received ref '${req.body.ref}' `);
                     }
                 } else {
                     console.warn('Received payload with an invalid secret');
-                    if(req.body){
-                        ['body','repository','pusher'].forEach(n=>
-                            !req.body[n]&&console.log('cannot found field ',n)
+                    if (req.body) {
+                        ['body', 'repository', 'pusher'].forEach(n =>
+                            !req.body[n] && console.log('cannot found field ', n)
                         );
 
-                    } else{
-                        console.log('cannot find',body);
+                    } else {
+                        console.log('cannot find', body);
                     }
 
 
