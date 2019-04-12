@@ -24,6 +24,7 @@ if(!secret){
             config.projects = [config];
         }
         app.post(config.route, function (req, res) {
+            console.log('req.body',req.body);
 
             for (const projectId in config.projects) {
                 const project = config.projects[projectId];
@@ -31,12 +32,13 @@ if(!secret){
                 const cf_branch = project.branch || config.branch || 'master';
                 const cfTagSearch = project.tagsearch || config.tagsearch || undefined;
                 const cfRepo = project.repository_name || config.repository_name || undefined;
+
                 // Checking if request is authentic
                 if (req.body
                     && req.body.ref
                     && req.body.repository
                     && req.body.pusher
-                   // && verifyGitHubSignature.ofRequest(req)
+                   //&& verifyGitHubSignature.ofRequest(req)
                     ) {
                     // If master was updated, do stuff
                     const tag = req.body.ref.replace('refs/tags/', '');
@@ -68,6 +70,16 @@ if(!secret){
                     }
                 } else {
                     console.warn('Received payload with an invalid secret');
+                    if(req.body){
+                        ['body','repository','pusher'].forEach(n=>
+                            !req.body[n]&&console.log('cannot found field ',n)
+                        );
+
+                    } else{
+                        console.log('cannot find',body);
+                    }
+
+
                     res.status(403).send();
                 }
             }
