@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "grunt test",
-    "start": "forever start index.js"
+    "start": "forever start index.js",
+    "stop": "forever stop 0",
+    "stopall": "forever stopall",
+    "ls": "forever list"
   },
   "repository": {
     "type": "git",

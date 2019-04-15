@@ -23,18 +23,20 @@ if (!secret) {
     verifyGitHubSignature.setSecret(secret);
 
     getConfig(function (config) {
+        //for backward compatibity
         if (config.branch && !config.projects) {
             config.projects = [config];
         }
+
         app.post(config.route, function (req, res) {
 
 
-            for (const projectId in config.projects) {
+            for (const projectId in project.projects) {
                 const project = config.projects[projectId];
                 deployTasks.initConfig(project);
-                const cf_branch = project.branch || config.branch || 'master';
-                const cfTagSearch = project.tagsearch || config.tagsearch || undefined;
-                const cfRepo = project.repository_name || config.repository_name || undefined;
+                const cf_branch = project.branch || project.branch || 'master';
+                const cfTagSearch = project.tagsearch || project.tagsearch || undefined;
+                const cfRepo = project.repository_name || project.repository_name || undefined;
 
                 // Checking if request is authentic
                 if (req.body
@@ -49,8 +51,10 @@ if (!secret) {
                     const repository_name = req.body.repository.name;
                     const repository_ssh_url = req.body.repository.ssh_url;
                     const pusher_email = req.body.pusher.email;
+                    const version = req.body.after;
+                    const message = req.body.head_commit && req.body.head_commit.message;
                     const params = Object.assign({},
-                        project,{ tag, branch, repository_name, repository_ssh_url, pusher_email});
+                        project,{ tag, branch, repository_name, repository_ssh_url, pusher_email, version, message});
 
                     if (req.body.ref ) {
                         if (matchRule(req.body.ref, 'refs/tags/' + cfTagSearch)) {
@@ -58,7 +62,7 @@ if (!secret) {
                                 if(project.checkDestinationDir && project.destinationDir){
                                     console.log('checkDestinationDir not yet implemented');
                                 }
-                                console.log('Valid tag payload! Running commands');
+                                console.log('Valid tag payload! Running commands with tag=',tag,'repository_name',repository_name);
                                 deployTasks.run(function () {
                                     res.status(200).send();
                                 }, params);
@@ -66,7 +70,7 @@ if (!secret) {
                                 console.log(`the received tag is not created`);
                             }
                         } else if (req.body.ref && req.body.ref === `refs/heads/${cf_branch}`) {
-                            console.log('Valid branch payload! Running commands');
+                            console.log('Valid branch payload! Running commands with branch=',branch,'version=',version,'message=',message);
                             deployTasks.run(function () {
                                 res.status(200).send();
                             }, params);
@@ -100,6 +104,6 @@ if (!secret) {
         server.listen(config.port, function () {
             console.log(`Listening for webhook events on port ${config.port} on ${config.route}`);
         });
-    });
+    }, process.argv[2]==='--config');
 
 }
