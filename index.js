@@ -37,6 +37,8 @@ if (!secret) {
                 const cf_branch = project.branch || project.branch || 'master';
                 const cfTagSearch = project.tagsearch || project.tagsearch || undefined;
                 const cfRepo = project.repository_name || project.repository_name || undefined;
+                console.log('----- check config ',projectId,' -----');
+                console.log('checking on branch ',cf_branch, 'tag ',cfTagSearch);
 
                 // Checking if request is authentic
                 if (req.body
@@ -85,9 +87,11 @@ if (!secret) {
                         console.log(`error received ref '${req.body.ref}' `);
                     }
                 } else {
-                    console.warn('Received payload with an invalid secret');
-                    if (req.body) {
-                        ['body', 'repository', 'pusher'].forEach(n =>
+                    console.warn('Received payload ref',req.body.ref);
+                    if(!verifyGitHubSignature.ofRequest(req)) {
+                        console.warn('Received payload with an invalid secret');
+                    }else  if (req.body) {
+                        [ 'ref','repository', 'pusher', 'message','head_commit'].forEach(n =>
                             !req.body[n] && console.log('cannot found field ', n)
                         );
 
