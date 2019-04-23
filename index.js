@@ -31,7 +31,7 @@ if (!secret) {
         app.post(config.route, function (req, res) {
 
 
-            for (const projectId in project.projects) {
+            for (const projectId in config.projects) {
                 const project = config.projects[projectId];
                 deployTasks.initConfig(project);
                 const cf_branch = project.branch || project.branch || 'master';
