@@ -1,21 +1,25 @@
 'use strict';
 require("dotenv").config({path: __dirname + "/.env"});
+
+const DeployTasks = require('./lib/deployTasks');
+
 //Short code
 function matchRule(str, rule) {
     return new RegExp("^" + rule.split("*").join(".*") + "$").test(str);
 }
+console.log('option:',process.argv[2]);
+const createNewConfig = process.argv[2]==='--config';
 
 const secret = process.env.DEPLOY_LISTENER_SECRET;
 if (!secret) {
     console.error('DEPLOY_LISTENER_SECRET is not defined');
 } else {
-    var express = require('express'),
+    const express = require('express'),
         app = express(),
         server = require('http').createServer(app),
         bodyParser = require('body-parser'),
         verifyGitHubSignature = require('./lib/verifyGitHubSignature'),
-        getConfig = require('./lib/getConfig'),
-        deployTasks = require('./lib/deployTasks');
+        getConfig = require('./lib/getConfig');
 
     app.use(bodyParser.urlencoded({extended: false}));
 
@@ -30,10 +34,10 @@ if (!secret) {
 
         app.post(config.route, function (req, res) {
 
-
+            console.log('received req',req);
             for (const projectId in config.projects) {
                 const project = config.projects[projectId];
-                deployTasks.initConfig(project);
+                const deployTasks = new DeployTasks(project);
                 const cf_branch = project.branch || project.branch || 'master';
                 const cfTagSearch = project.tagsearch || project.tagsearch || undefined;
                 const cfRepo = project.repository_name || project.repository_name || undefined;
@@ -45,7 +49,7 @@ if (!secret) {
                     && req.body.ref
                     && req.body.repository
                     && req.body.pusher
-                //&& verifyGitHubSignature.ofRequest(req)
+                    && verifyGitHubSignature.ofRequest(req)
                 ) {
                     // If master was updated, do stuff
                     const tag = req.body.ref.replace('refs/tags/', '');
@@ -53,7 +57,7 @@ if (!secret) {
                     const repository_name = req.body.repository.name;
                     const repository_ssh_url = req.body.repository.ssh_url;
                     const pusher_email = req.body.pusher.email;
-                    const version = req.body.after;
+                    const version = req.body.after || tag;
                     const message = req.body.head_commit && req.body.head_commit.message;
                     const params = Object.assign({},
                         project,{ tag, branch, repository_name, repository_ssh_url, pusher_email, version, message});
@@ -72,7 +76,7 @@ if (!secret) {
                                 console.log(`the received tag is not created`);
                             }
                         } else if (req.body.ref && req.body.ref === `refs/heads/${cf_branch}`) {
-                            console.log('Valid branch payload! Running commands with branch=',branch,'version=',version,'message=',message);
+                            console.log('Found a valid payload! with branch=',cf_branch,'version=',version,'message=',message);
                             deployTasks.run(function () {
                                 res.status(200).send();
                             }, params);
@@ -108,6 +112,6 @@ if (!secret) {
         server.listen(config.port, function () {
             console.log(`Listening for webhook events on port ${config.port} on ${config.route}`);
         });
-    }, process.argv[2]==='--config');
+    }, createNewConfig);
 
 }
