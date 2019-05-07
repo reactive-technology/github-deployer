@@ -8,7 +8,7 @@ function matchRule(str, rule) {
     return new RegExp("^" + rule.split("*").join(".*") + "$").test(str);
 }
 console.log('option:',process.argv[2]);
-const createNewConfig = process.argv[2]==='--config';
+const createNewConfig = process.argv[2]==='--config' || process.argv[2]==='--add';
 
 const secret = process.env.DEPLOY_LISTENER_SECRET;
 if (!secret) {
