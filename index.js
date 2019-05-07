@@ -7,6 +7,37 @@ const DeployTasks = require('./lib/deployTasks');
 function matchRule(str, rule) {
     return new RegExp("^" + rule.split("*").join(".*") + "$").test(str);
 }
+
+function getDateTime() {
+    const now     = new Date();
+    let year    = now.getFullYear();
+    let month   = now.getMonth()+1;
+    let day     = now.getDate();
+    let hour    = now.getHours();
+    let minute  = now.getMinutes();
+    let second  = now.getSeconds();
+    if(month.toString().length === 1) {
+        month = '0'+month;
+    }
+    if(day.toString().length === 1) {
+        day = '0'+day;
+    }
+    if(hour.toString().length === 1) {
+        hour = '0'+hour;
+    }
+    if(minute.toString().length === 1) {
+        minute = '0'+minute;
+    }
+    if(second.toString().length === 1) {
+        second = '0'+second;
+    }
+    const dateTime = year+month+day+'-'+hour+minute+second;
+    return dateTime;
+}
+
+// example usage: realtime clock
+console.log('TIME:',getDateTime());
+
 console.log('option:',process.argv[2]);
 const createNewConfig = process.argv[2]==='--config' || process.argv[2]==='--add';
 
@@ -59,8 +90,9 @@ if (!secret) {
                     const pusher_email = req.body.pusher.email;
                     const version = req.body.after || tag;
                     const message = req.body.head_commit && req.body.head_commit.message;
+                    const datetime = getDateTime();
                     const params = Object.assign({},
-                        project,{ tag, branch, repository_name, repository_ssh_url, pusher_email, version, message});
+                        project,{ tag, branch, repository_name, repository_ssh_url, pusher_email, version, message, datetime});
 
                     if (req.body.ref ) {
                         if (matchRule(req.body.ref, 'refs/tags/' + cfTagSearch)) {
