@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "grunt test",
+    "run": "node index.js",
+    "config": "node index.js --config",
     "start": "ssh-add ~/.ssh/${SSH_KEY_NAME}; forever start index.js && tail -f ~/.forever/*.log",
     "stop": "forever stop 0",
     "stopall": "forever stopall",
