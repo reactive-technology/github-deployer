@@ -42,8 +42,12 @@ console.log('option:',process.argv[2]);
 const createNewConfig = process.argv[2]==='--config' || process.argv[2]==='--add';
 
 const secret = process.env.DEPLOY_LISTENER_SECRET;
-if (!secret) {
+const sshKeyName = process.env.SSH_KEY_NAME;
+
+if (!secret ) {
     console.error('DEPLOY_LISTENER_SECRET is not defined');
+} else if (!sshKeyName) {
+    console.error('SSH_KEY_NAME is not defined');
 } else {
     const express = require('express'),
         app = express(),
