@@ -7,7 +7,7 @@
     "test": "grunt test",
     "deployer": "node index.js",
     "config": "node index.js --config",
-    "start": "export $(egrep -v '^#' .env | xargs -0) && ssh-add ~/.ssh/${SSH_KEY_NAME}; forever start index.js && tail -f ~/.forever/*.log",
+    "start": "export $(egrep -v '^#' .env | xargs -0)&& eval `ssh-agent` && ssh-add ~/.ssh/${SSH_KEY_NAME}; forever start index.js && tail -f ~/.forever/*.log",
     "stop": "forever stop 0",
     "stopall": "forever stopall",
     "ls": "forever list"
