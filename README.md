@@ -3,10 +3,22 @@
 This project creates a simple server that listens to [GitHub WebHooks](https://developer.github.com/webhooks/) and then
 runs a set of commands to, primarily, update the application that sent the request.
 
-## Motivation
-
+## First original owner motivation
 Upon pushing to master branch of a specific repository, I wanted to automatically update the version of that code
 that runs in a cloud server, so that the live code stays updated with repository's master branch.
+
+## forked version
+When I installed the original version, I made some improvments locally to make it beahave more continous integration, with multiple repository management, branches or tags. 
+Also it seems necessary not just to do a git pull, but to re-create a new version from scratch with the process:
+- git ssh key load
+- clone the the changed branch or tag from repository
+- compile/install version
+- configure
+- start service
+
+on the first start, you will be prompted of all information, 
+In many case, you will only need to provide your repository name, every other prompt may be the default choice.
+In any case, after the first config is created, you can then modify it to meet your need.
 
 ## Configuring GitHub
 
