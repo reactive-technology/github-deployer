@@ -13,6 +13,7 @@ echo install node
 sudo curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
 sudo apt-get -y install nodejs git
 
+
 echo "install yarnpkg"
 #sudo apt install --no-install-recommends yarn
 curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -

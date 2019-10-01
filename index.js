@@ -42,7 +42,7 @@ console.log('option:',process.argv[2]);
 const createNewConfig = process.argv[2]==='--config' || process.argv[2]==='--add';
 
 const secret = process.env.DEPLOY_LISTENER_SECRET;
-const sshKeyName = process.env.SSH_KEY_NAME;
+const sshKeyName = process.env.SSH_KEY_NAME || 'id_rsa';
 
 if (!secret ) {
     console.error('DEPLOY_LISTENER_SECRET is not defined');
