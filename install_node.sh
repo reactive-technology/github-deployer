@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # exit when any command fails
 set -e
+
 echo get certificate
 sudo apt-get -y install apt-transport-https ca-certificates
 echo update
